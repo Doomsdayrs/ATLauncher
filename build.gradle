@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.mini2Dx:gettext-gradle-plugin:1.10.4'
+        classpath 'com.guardsquare:proguard-gradle:7.2.1'
     }
 }
 
@@ -210,6 +211,15 @@ test {
     if (JavaVersion.current().isJava9Compatible()) {
         jvmArgs '--add-opens=java.base/sun.security.x509=ALL-UNNAMED'
     }
+}
+
+task proguard(type: proguard.gradle.ProGuardTask) {
+    println("Performing obfuscation..")
+    configuration 'proguard.conf'
+    injars "${shadowJar}"
+    outjars "${buildDir}/libs/${rootProject.name}_proguard.jar"
+    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    libraryjars "${dependencies}"
 }
 
 task copyArtifacts(type: Copy) {
