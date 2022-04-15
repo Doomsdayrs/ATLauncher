@@ -217,9 +217,10 @@ test {
 task proguard(type: ProGuardTask) {
     println("Performing obfuscation..")
     configuration 'proguard.conf'
-    injars "${shadowJar}"
-    outjars "${buildDir}/libs/${rootProject.name}_proguard.jar"
-    libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+
+    injars(shadowJar.archiveFile)
+    outjars(new File(shadowJar.path, "proguardJar.jar"))
+
     libraryjars "${dependencies}"
 }
 
@@ -279,6 +280,7 @@ tasks.named("dependencyUpdates").configure {
 }
 
 build.finalizedBy copyArtifacts
+shadowJar.finalizedBy proguard
 shadowJar.dependsOn jar
 build.dependsOn createExe, createMacApp
 createApp.finalizedBy downloadNewerUniversalJavaApplicationStub
