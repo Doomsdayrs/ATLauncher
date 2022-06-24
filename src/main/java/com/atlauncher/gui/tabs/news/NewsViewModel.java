@@ -18,6 +18,7 @@
 package com.atlauncher.gui.tabs.news;
 
 import com.atlauncher.managers.NewsManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
  * 14 / 06 / 2022
  */
 public class NewsViewModel implements INewsViewModel {
+    @Nullable
     private Consumer<String> _onReload;
 
     @Override
@@ -34,6 +36,12 @@ public class NewsViewModel implements INewsViewModel {
 
     @Override
     public void reload() {
-        _onReload.accept(NewsManager.getNewsHTML());
+        if (_onReload != null)
+            _onReload.accept(NewsManager.getNewsHTML());
+    }
+
+    @Override
+    public void destroy() {
+        _onReload = null;
     }
 }

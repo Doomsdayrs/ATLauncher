@@ -33,8 +33,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
-import com.atlauncher.FileSystem;
-import com.atlauncher.gui.panels.HierarchyPanel;
+import com.atlauncher.gui.panels.ViewModelPanel;
 import com.atlauncher.gui.tabs.Tab;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +46,7 @@ import com.atlauncher.utils.OS;
  * latest news.
  */
 @SuppressWarnings("serial")
-public class NewsTab extends HierarchyPanel implements Tab {
+public class NewsTab extends ViewModelPanel<INewsViewModel> implements Tab {
     private static final Logger LOG = LogManager.getLogger(NewsTab.class);
     private final HTMLEditorKit NEWS_KIT = new HTMLEditorKit() {
         {
@@ -68,18 +67,22 @@ public class NewsTab extends HierarchyPanel implements Tab {
     };
 
     private final ContextMenu NEWS_MENU = new ContextMenu();
-    private final INewsViewModel viewModel = new NewsViewModel();
 
     /**
      * Instantiates a new instance of this class which sets the layout and loads the
      * content.
      */
     public NewsTab() {
-        super(new BorderLayout());
+        super(new BorderLayout(), NewsViewModel::new);
         this.add(new JScrollPane(this.NEWS_PANE, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.CENTER);
+    }
 
-        viewModel.addOnReloadListener(html -> {
+    @Override
+    protected void onShow() {
+        LOG.debug("NewsTab.onShow");
+
+        getViewModel().addOnReloadListener(html -> {
             // Because reload() is a public function, we need to ensure it
             // does not trigger setting the UI when the UI is hidden
             if (isShowing()) {
@@ -88,11 +91,7 @@ public class NewsTab extends HierarchyPanel implements Tab {
                 this.NEWS_PANE.setCaretPosition(0);
             }
         });
-    }
 
-    @Override
-    protected void onShow() {
-        LOG.debug("NewsTab.onShow");
         reload();
     }
 
@@ -100,6 +99,7 @@ public class NewsTab extends HierarchyPanel implements Tab {
     protected void onHide() {
         LOG.debug("NewsTab.onHide");
         NEWS_PANE.setText(null);
+        super.onHide();
     }
 
     /**
@@ -131,7 +131,7 @@ public class NewsTab extends HierarchyPanel implements Tab {
      * Reloads the panel with updated news.
      */
     public void reload() {
-        viewModel.reload();
+        getViewModel().reload();
     }
 
     @Override

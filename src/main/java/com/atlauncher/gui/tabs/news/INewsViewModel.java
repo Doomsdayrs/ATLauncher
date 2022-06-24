@@ -17,6 +17,7 @@
  */
 package com.atlauncher.gui.tabs.news;
 
+import javax.security.auth.Destroyable;
 import java.util.function.Consumer;
 
 /**
@@ -24,7 +25,7 @@ import java.util.function.Consumer;
  *
  * View model for NewsTab
  */
-public interface INewsViewModel {
+public interface INewsViewModel extends Destroyable {
 
     /**
      * React to reload events
