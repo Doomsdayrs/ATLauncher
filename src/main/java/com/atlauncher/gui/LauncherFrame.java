@@ -21,10 +21,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.SystemTray;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,7 +56,7 @@ import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Utils;
 
 @SuppressWarnings("serial")
-public final class LauncherFrame extends JFrame implements RelocalizationListener {
+public final class LauncherFrame extends JFrame implements RelocalizationListener, HierarchyListener {
     private JTabbedPane tabbedPane;
 
     private List<Tab> tabs;
@@ -183,6 +180,9 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
                 }
             }
         });
+
+        addNotify();
+        addHierarchyListener(this);
     }
 
     /**
@@ -253,5 +253,10 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         }
 
         tabbedPane.setFont(App.THEME.getTabFont());
+    }
+
+    @Override
+    public void hierarchyChanged(HierarchyEvent hierarchyEvent) {
+
     }
 }
