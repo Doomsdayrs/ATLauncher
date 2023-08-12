@@ -86,7 +86,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                 boolean reloadTheme = generalSettingsTab.needToReloadTheme();
                 boolean themeChanged = generalSettingsTab.themeChanged();
                 boolean languageChanged = generalSettingsTab.languageChanged();
-                boolean reloadInstancesPanel = generalSettingsTab.needToReloadInstancesPanel();
                 generalSettingsTab.save();
                 modsSettingsTab.save();
                 javaSettingsTab.save();
@@ -96,9 +95,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                 commandSettingsTab.save();
                 App.settings.save();
                 SettingsManager.post();
-                if (reloadInstancesPanel) {
-                    InstanceManager.reload();
-                }
                 if (themeChanged) {
                     Analytics.trackEvent(AnalyticsEvent.forThemeChange(App.THEME.getName()));
                 }
