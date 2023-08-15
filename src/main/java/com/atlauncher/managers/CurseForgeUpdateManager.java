@@ -18,18 +18,32 @@
 package com.atlauncher.managers;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-import com.atlauncher.App;
-import com.atlauncher.Data;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.curseforge.CurseForgeFile;
 import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.utils.CurseForgeApi;
 
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
 public class CurseForgeUpdateManager {
+    // CurseForge instance update checking
+    private static final Map<Instance, BehaviorSubject<Optional<CurseForgeFile>>>
+        CURSEFORGE_INSTANCE_LATEST_VERSION = new HashMap<>();
+
+    public static BehaviorSubject<Optional<CurseForgeFile>> getSubject(Instance instance) {
+        CURSEFORGE_INSTANCE_LATEST_VERSION.putIfAbsent(
+            instance,
+            BehaviorSubject.createDefault(Optional.empty())
+        );
+        return CURSEFORGE_INSTANCE_LATEST_VERSION.get(instance);
+    }
+
     public static CurseForgeFile getLatestVersion(Instance instance) {
-        return Data.CURSEFORGE_INSTANCE_LATEST_VERSION.get(instance);
+        return getSubject(instance).getValue().orElse(null);
     }
 
     public static void checkForUpdates() {
@@ -41,37 +55,33 @@ public class CurseForgeUpdateManager {
         LogManager.info("Checking for updates to CurseForge instances");
 
         int[] projectIdsFound = InstanceManager.getInstances().parallelStream()
-                .filter(i -> i.isCurseForgePack() && i.hasCurseForgeProjectId())
-                .mapToInt(i -> i.launcher.curseForgeManifest != null
-                        ? i.launcher.curseForgeManifest.projectID
-                        : i.launcher.curseForgeProject.id)
-                .toArray();
+            .filter(i -> i.isCurseForgePack() && i.hasCurseForgeProjectId())
+            .mapToInt(i -> i.launcher.curseForgeManifest != null
+                ? i.launcher.curseForgeManifest.projectID
+                : i.launcher.curseForgeProject.id)
+            .toArray();
 
         Map<Integer, CurseForgeProject> foundProjects = CurseForgeApi.getProjectsAsMap(projectIdsFound);
 
         if (foundProjects != null) {
 
             InstanceManager.getInstances().parallelStream()
-                    .filter(i -> i.isCurseForgePack() && i.hasCurseForgeProjectId()).forEach(i -> {
-                        CurseForgeProject curseForgeMod = foundProjects.get(i.launcher.curseForgeManifest != null
-                                ? i.launcher.curseForgeManifest.projectID
-                                : i.launcher.curseForgeProject.id);
+                .filter(i -> i.isCurseForgePack() && i.hasCurseForgeProjectId()).forEach(i -> {
+                    CurseForgeProject curseForgeMod = foundProjects.get(i.launcher.curseForgeManifest != null
+                        ? i.launcher.curseForgeManifest.projectID
+                        : i.launcher.curseForgeProject.id);
 
-                        if (curseForgeMod == null) {
-                            return;
-                        }
+                    if (curseForgeMod == null) {
+                        return;
+                    }
 
-                        CurseForgeFile latestVersion = curseForgeMod.latestFiles.stream()
-                                .sorted(Comparator.comparingInt((
-                                        CurseForgeFile file) -> file.id).reversed())
-                                .findFirst().orElse(null);
+                    CurseForgeFile latestVersion = curseForgeMod.latestFiles.stream()
+                        .sorted(Comparator.comparingInt((
+                            CurseForgeFile file) -> file.id).reversed())
+                        .findFirst().orElse(null);
 
-                        if (latestVersion == null) {
-                            return;
-                        }
-
-                        Data.CURSEFORGE_INSTANCE_LATEST_VERSION.put(i, latestVersion);
-                    });
+                    getSubject(i).onNext(Optional.ofNullable(latestVersion));
+                });
         }
 
         PerformanceManager.end();

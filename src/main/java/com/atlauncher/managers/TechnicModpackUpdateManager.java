@@ -18,9 +18,10 @@
 package com.atlauncher.managers;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-import com.atlauncher.App;
-import com.atlauncher.Data;
 import com.atlauncher.Gsons;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.technic.TechnicModpack;
@@ -28,13 +29,40 @@ import com.atlauncher.data.technic.TechnicSolderModpack;
 import com.atlauncher.network.DownloadException;
 import com.atlauncher.utils.TechnicApi;
 
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
 public class TechnicModpackUpdateManager {
+
+    // Technic Non Solder instance update checking
+    private static final Map<Instance, BehaviorSubject<Optional<TechnicModpack>>>
+        TECHNIC_INSTANCE_LATEST_VERSION = new HashMap<>();
+
+    // Technic Solder instance update checking
+    private static final Map<Instance, BehaviorSubject<Optional<TechnicSolderModpack>>>
+        TECHNIC_SOLDER_INSTANCE_LATEST_VERSION = new HashMap<>();
+
+    public static BehaviorSubject<Optional<TechnicModpack>> getSubject(Instance instance){
+        TECHNIC_INSTANCE_LATEST_VERSION.putIfAbsent(
+            instance,
+            BehaviorSubject.createDefault(Optional.empty())
+        );
+        return TECHNIC_INSTANCE_LATEST_VERSION.get(instance);
+    }
+
+    public static BehaviorSubject<Optional<TechnicSolderModpack>> getSolderSubject(Instance instance){
+        TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.putIfAbsent(
+            instance,
+            BehaviorSubject.createDefault(Optional.empty())
+        );
+        return TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.get(instance);
+    }
+
     public static TechnicModpack getUpToDateModpack(Instance instance) {
-        return Data.TECHNIC_INSTANCE_LATEST_VERSION.get(instance);
+        return getSubject(instance).getValue().orElse(null);
     }
 
     public static TechnicSolderModpack getUpToDateSolderModpack(Instance instance) {
-        return Data.TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.get(instance);
+        return getSolderSubject(instance).getValue().orElse(null);
     }
 
     public static void checkForUpdates() {
@@ -67,22 +95,14 @@ public class TechnicModpackUpdateManager {
                         LogManager.logStackTrace(e);
                     }
 
-                    if (technicModpack == null) {
-                        return;
-                    }
-
-                    if (i.isTechnicSolderPack()) {
+                    if (technicModpack != null & i.isTechnicSolderPack()) {
                         TechnicSolderModpack technicSolderModpack = TechnicApi.getSolderModpackBySlug(
                                 technicModpack.solder,
                                 technicModpack.name);
 
-                        if (technicSolderModpack == null) {
-                            return;
-                        }
-
-                        Data.TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.put(i, technicSolderModpack);
+                        getSolderSubject(i).onNext(Optional.ofNullable(technicSolderModpack));
                     } else {
-                        Data.TECHNIC_INSTANCE_LATEST_VERSION.put(i, technicModpack);
+                        getSubject(i).onNext(Optional.ofNullable(technicModpack));
                     }
                 });
 

@@ -243,68 +243,6 @@ public class Instance extends MinecraftVersion {
         }
     }
 
-    public boolean hasUpdate() {
-        if (launcher.vanillaInstance) {
-            // must be reinstalled
-            return false;
-        } else if (this.isExternalPack()) {
-            if (isModpacksChPack()) {
-                ModpacksChPackVersion latestVersion = Data.MODPACKS_CH_INSTANCE_LATEST_VERSION.get(this);
-
-                return latestVersion != null && latestVersion.id != this.launcher.modpacksChPackVersionManifest.id;
-            } else if (isCurseForgePack()) {
-                CurseForgeFile latestVersion = Data.CURSEFORGE_INSTANCE_LATEST_VERSION.get(this);
-
-                return latestVersion != null && latestVersion.id != this.launcher.curseForgeFile.id;
-            } else if (isTechnicPack()) {
-                if (isTechnicSolderPack()) {
-                    TechnicSolderModpack technicSolderModpack = Data.TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.get(this);
-
-                    if (technicSolderModpack == null) {
-                        return false;
-                    }
-
-                    return !technicSolderModpack.latest.equals(launcher.version);
-                } else {
-                    TechnicModpack technicModpack = Data.TECHNIC_INSTANCE_LATEST_VERSION.get(this);
-
-                    if (technicModpack == null) {
-                        return false;
-                    }
-
-                    return !technicModpack.version.equals(launcher.version);
-                }
-            } else if (isModrinthPack()) {
-                ModrinthVersion latestVersion = Data.MODRINTH_INSTANCE_LATEST_VERSION.get(this);
-
-                return latestVersion != null && !latestVersion.id.equals(this.launcher.modrinthVersion.id);
-            }
-        } else {
-            Pack pack = this.getPack();
-
-            if (pack != null) {
-                if (pack.hasVersions() && !this.launcher.isDev) {
-                    // Lastly check if the current version we installed is different than the latest
-                    // version of the Pack and that the latest version of the Pack is not restricted
-                    // to disallow updates.
-                    if (!pack.getLatestVersion().version.equalsIgnoreCase(this.launcher.version)
-                            && !pack.isLatestVersionNoUpdate()) {
-                        return true;
-                    }
-                }
-
-                if (this.launcher.isDev && (this.launcher.hash != null)) {
-                    PackVersion devVersion = pack.getDevVersionByName(this.launcher.version);
-                    if (devVersion != null && !devVersion.hashMatches(this.launcher.hash)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
     public PackVersion getLatestVersion() {
         Pack pack = this.getPack();
 
