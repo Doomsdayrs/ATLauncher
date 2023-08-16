@@ -34,15 +34,15 @@ import okhttp3.CacheControl;
 
 public class ModpacksChUpdateManager {
     // Modpacks.ch instance update checking
-    private static final Map<Instance, BehaviorSubject<Optional<ModpacksChPackVersion>>>
+    private static final Map<String, BehaviorSubject<Optional<ModpacksChPackVersion>>>
         MODPACKS_CH_INSTANCE_LATEST_VERSION = new HashMap<>();
 
     public static BehaviorSubject<Optional<ModpacksChPackVersion>> getSubject(Instance instance){
         MODPACKS_CH_INSTANCE_LATEST_VERSION.putIfAbsent(
-            instance,
+            instance.id,
             BehaviorSubject.createDefault(Optional.empty())
         );
-        return MODPACKS_CH_INSTANCE_LATEST_VERSION.get(instance);
+        return MODPACKS_CH_INSTANCE_LATEST_VERSION.get(instance.id);
     }
 
     public static ModpacksChPackVersion getLatestVersion(Instance instance) {

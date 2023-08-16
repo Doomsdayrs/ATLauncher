@@ -34,27 +34,27 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 public class TechnicModpackUpdateManager {
 
     // Technic Non Solder instance update checking
-    private static final Map<Instance, BehaviorSubject<Optional<TechnicModpack>>>
+    private static final Map<String, BehaviorSubject<Optional<TechnicModpack>>>
         TECHNIC_INSTANCE_LATEST_VERSION = new HashMap<>();
 
     // Technic Solder instance update checking
-    private static final Map<Instance, BehaviorSubject<Optional<TechnicSolderModpack>>>
+    private static final Map<String, BehaviorSubject<Optional<TechnicSolderModpack>>>
         TECHNIC_SOLDER_INSTANCE_LATEST_VERSION = new HashMap<>();
 
     public static BehaviorSubject<Optional<TechnicModpack>> getSubject(Instance instance){
         TECHNIC_INSTANCE_LATEST_VERSION.putIfAbsent(
-            instance,
+            instance.id,
             BehaviorSubject.createDefault(Optional.empty())
         );
-        return TECHNIC_INSTANCE_LATEST_VERSION.get(instance);
+        return TECHNIC_INSTANCE_LATEST_VERSION.get(instance.id);
     }
 
     public static BehaviorSubject<Optional<TechnicSolderModpack>> getSolderSubject(Instance instance){
         TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.putIfAbsent(
-            instance,
+            instance.id,
             BehaviorSubject.createDefault(Optional.empty())
         );
-        return TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.get(instance);
+        return TECHNIC_SOLDER_INSTANCE_LATEST_VERSION.get(instance.id);
     }
 
     public static TechnicModpack getUpToDateModpack(Instance instance) {

@@ -31,15 +31,15 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 public class ModrinthModpackUpdateManager {
     // Modrinth instance update checking
-    private static final Map<Instance, BehaviorSubject<Optional<ModrinthVersion>>>
+    private static final Map<String, BehaviorSubject<Optional<ModrinthVersion>>>
         MODRINTH_INSTANCE_LATEST_VERSION = new HashMap<>();
 
     public static BehaviorSubject<Optional<ModrinthVersion>> getSubject(Instance instance){
         MODRINTH_INSTANCE_LATEST_VERSION.putIfAbsent(
-            instance,
+            instance.id,
             BehaviorSubject.createDefault(Optional.empty())
         );
-        return MODRINTH_INSTANCE_LATEST_VERSION.get(instance);
+        return MODRINTH_INSTANCE_LATEST_VERSION.get(instance.id);
     }
 
     public static ModrinthVersion getLatestVersion(Instance instance) {

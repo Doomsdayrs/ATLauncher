@@ -31,15 +31,15 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 public class CurseForgeUpdateManager {
     // CurseForge instance update checking
-    private static final Map<Instance, BehaviorSubject<Optional<CurseForgeFile>>>
+    private static final Map<String, BehaviorSubject<Optional<CurseForgeFile>>>
         CURSEFORGE_INSTANCE_LATEST_VERSION = new HashMap<>();
 
     public static BehaviorSubject<Optional<CurseForgeFile>> getSubject(Instance instance) {
         CURSEFORGE_INSTANCE_LATEST_VERSION.putIfAbsent(
-            instance,
+            instance.id,
             BehaviorSubject.createDefault(Optional.empty())
         );
-        return CURSEFORGE_INSTANCE_LATEST_VERSION.get(instance);
+        return CURSEFORGE_INSTANCE_LATEST_VERSION.get(instance.id);
     }
 
     public static CurseForgeFile getLatestVersion(Instance instance) {
