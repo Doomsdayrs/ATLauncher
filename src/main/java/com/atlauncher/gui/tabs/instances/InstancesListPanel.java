@@ -17,8 +17,11 @@
  */
 package com.atlauncher.gui.tabs.instances;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.mini2Dx.gettext.GetText;
@@ -31,6 +34,7 @@ import com.atlauncher.gui.card.NilCard;
 import com.atlauncher.gui.panels.HierarchyPanel;
 import com.atlauncher.gui.tabs.InstancesTab;
 import com.atlauncher.managers.PerformanceManager;
+import com.atlauncher.utils.Pair;
 import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 import com.google.common.collect.Lists;
 
@@ -73,22 +77,56 @@ public final class InstancesListPanel extends HierarchyPanel
                         )
                     ).collect(Collectors.toList());
                 }
-            ).subscribe(instances -> {
+            ).subscribe(newInstances -> {
                 final GridBagConstraints gbc = new GridBagConstraints();
                 gbc.gridx = gbc.gridy = 0;
                 gbc.weightx = 1.0;
                 gbc.insets = UIConstants.FIELD_INSETS;
                 gbc.fill = GridBagConstraints.BOTH;
 
-                removeAll();
-
-                if (instances.isEmpty()) {
+                if (newInstances.isEmpty()) {
+                    removeAll();
                     this.add(this.nilCard, gbc);
                 } else {
                     PerformanceManager.start("Render cards");
+
+                    List<Pair<Integer, InstanceCard>> currentCards = new ArrayList<>();
+
+                    // Generate current cards
+                    {
+                        Component[] components = this.getComponents();
+                        int index = 0;
+                        for (Component component : components) {
+                            if (component instanceof InstanceCard) {
+                                currentCards.add(new Pair<>(index, (InstanceCard) component));
+                            }
+                            index++;
+                        }
+                    }
+
+                    // Update cards
+                    {
+                        List<Pair<Integer, InstanceCard>> updated = new ArrayList<>(currentCards);
+
+                    }
+
+                    // Remove
+                    {
+                        List<Pair<Integer, InstanceCard>> removed = new ArrayList<>(currentCards);
+                        removed.removeIf(visibleCard -> {
+                                InstanceCard currentCard = visibleCard.right();
+                                return newInstances.stream()
+                                    .noneMatch(newCard -> newCard.getInstance().uuid == currentCard.getInstance().uuid);
+                            }
+                        );
+                        removed.forEach(pair -> remove(pair.left()));
+                    }
+
+                    removeAll();
+
                     // Portion up into chunks of 10, to make rendering easier
-                    Lists.partition(instances, 10).forEach(subInstances -> {
-                        instances.forEach(instance -> {
+                    Lists.partition(newInstances, 10).forEach(subInstances -> {
+                        newInstances.forEach(instance -> {
                             this.add(
                                 instance,
                                 gbc
